@@ -1,0 +1,183 @@
+import type { PlasmoCSConfig } from 'plasmo'
+import createCache from '@emotion/cache'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { PromptItem } from '~components/promt-item'
+import type { Prompt } from '~types/prompt.type'
+import { ThemeProvider } from '~components/theme-provider'
+import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
+import { CacheProvider } from '@emotion/react'
+import { useStorage } from '@plasmohq/storage/hook'
+
+const styleElement = document.createElement('style')
+
+const styleCache = createCache({
+  key: 'plasmo-emotion-cache',
+  prepend: true,
+  container: styleElement,
+})
+
+export const config: PlasmoCSConfig = {
+  matches: ['https://chat.openai.com/*'],
+}
+
+export const getStyle = () => styleElement
+
+const PromptSuggestionsContent = () => {
+  const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark')
+  const [prompts] = useStorage<Prompt[]>('prompts', [])
+  const [selectedId, setSelectedId] = useState('')
+  const [results, setResults] = useState([])
+  const dom = document.getElementById('prompt-textarea').parentElement
+  const { x, y, width } = dom?.getBoundingClientRect() || { x: 0, y: 0, bottom: 0, width: 0 }
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const handleSetInput = useCallback(
+    (event: InputEvent) => {
+      const currentTarget = event.currentTarget as HTMLInputElement
+      const input = currentTarget?.value || ''
+      const slash = input[0]
+      if (!input || slash !== '/') {
+        setResults([])
+        return
+      }
+      const text = input.slice(1).toLowerCase()
+      const data = prompts.filter((item) => {
+        return item.prompt.toLowerCase().includes(text) || item.title.toLowerCase().includes(text)
+      })
+      setResults(data)
+      setSelectedId(data[0]?.id)
+    },
+    [prompts],
+  )
+
+  const handleSelectItem = useCallback((item: Prompt) => {
+    const inputDom = document.getElementById('prompt-textarea') as HTMLInputElement
+    if (inputDom) {
+      inputDom.value = item.prompt
+      const event = new Event('input', { bubbles: true })
+      inputDom.dispatchEvent(event)
+      if (item.selection) {
+        inputDom.setSelectionRange(item.selection[0], item.selection[1])
+      }
+      inputDom.focus()
+    }
+    setResults([])
+  }, [])
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!results.length) return
+      const index = results.findIndex((item) => item.id === selectedId)
+      const item = results.find((item) => item.id === selectedId)
+      switch (event.key) {
+        case 'Escape':
+          setResults([])
+          event.preventDefault()
+          break
+        case 'ArrowDown':
+          if (index === results.length - 1) {
+            setSelectedId(results[0].id)
+          } else {
+            setSelectedId(results[index + 1].id)
+          }
+          event.preventDefault()
+          break
+        case 'ArrowUp':
+          if (index === 0) {
+            setSelectedId(results[results.length - 1].id)
+          } else {
+            setSelectedId(results[index - 1].id)
+          }
+          event.preventDefault()
+          break
+        case 'Enter':
+        case 'Tab':
+          if (item) {
+            handleSelectItem(item)
+            event.preventDefault()
+          }
+          break
+        default:
+          break
+      }
+    },
+    [handleSelectItem, results, selectedId],
+  )
+
+  useEffect(() => {
+    const inputDom = document.getElementById('prompt-textarea')
+    if (inputDom) {
+      inputDom.addEventListener('input', handleSetInput)
+      inputDom.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      if (inputDom) {
+        inputDom.removeEventListener('input', handleSetInput)
+        inputDom.removeEventListener('keydown', handleKeyDown)
+      }
+    }
+  }, [handleKeyDown, handleSetInput])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (target.id !== 'prompt-textarea') {
+        setResults([])
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [])
+
+  useEffect(() => {
+    const html = document.querySelector('html')
+    if (html) {
+      const scheme = html.classList.contains('dark') ? 'dark' : 'light'
+      setColorScheme(scheme)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    if (listRef.current) {
+      listRef.current.querySelector(`#prompt-item-${selectedId}.active`)?.scrollIntoView({
+        block: 'nearest',
+      })
+    }
+  }, [selectedId])
+
+  if (results.length === 0) return null
+
+  return (
+    <CacheProvider value={styleCache}>
+      <ThemeProvider emotionCache={styleCache} colorScheme={colorScheme}>
+        <div style={{ position: 'fixed', left: x, bottom: window.innerHeight - y + 12, width }}>
+          <Paper radius="md" p={6} role="listbox" shadow="lg" withBorder>
+            <Text size="xs" style={{ marginBottom: 6 }}>
+              Press <Kbd>Tab</Kbd> to select
+            </Text>
+            <ScrollArea h={400} type="auto" ref={listRef} sx={{ '& > div > div': { display: 'block!important' } }}>
+              {results.map((item) => (
+                <PromptItem
+                  key={item.id}
+                  id={`prompt-item-${item.id}`}
+                  className={selectedId === item.id ? 'active' : ''}
+                  onClick={() => handleSelectItem(item)}
+                  onMouseEnter={() => setSelectedId(item.id)}
+                >
+                  <Text>{item.title}</Text>
+                  <Text truncate size="sm" color="dimmed">
+                    {item.prompt}
+                  </Text>
+                </PromptItem>
+              ))}
+            </ScrollArea>
+          </Paper>
+        </div>
+      </ThemeProvider>
+    </CacheProvider>
+  )
+}
+
+export default PromptSuggestionsContent
