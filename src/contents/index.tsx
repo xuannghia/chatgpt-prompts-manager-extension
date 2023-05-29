@@ -1,12 +1,14 @@
-import type { PlasmoCSConfig } from 'plasmo'
 import createCache from '@emotion/cache'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { PromptItem } from '~components/promt-item'
-import type { Prompt } from '~types/prompt.type'
-import { ThemeProvider } from '~components/theme-provider'
-import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
 import { CacheProvider } from '@emotion/react'
+import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
+import type { PlasmoCSConfig } from 'plasmo'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+
 import { useStorage } from '@plasmohq/storage/hook'
+
+import { PromptItem } from '~components/promt-item'
+import { ThemeProvider } from '~components/theme-provider'
+import type { Prompt } from '~types/prompt.type'
 
 const styleElement = document.createElement('style')
 
@@ -157,7 +159,12 @@ const PromptSuggestionsContent = () => {
             <Text size="xs" style={{ marginBottom: 6 }}>
               Press <Kbd>Tab</Kbd> to select
             </Text>
-            <ScrollArea h={400} type="auto" ref={listRef} sx={{ '& > div > div': { display: 'block!important' } }}>
+            <ScrollArea
+              h={400}
+              type="auto"
+              ref={listRef}
+              sx={{ '& > div > div': { display: 'block!important' } }}
+            >
               {results.map((item) => (
                 <PromptItem
                   key={item.id}

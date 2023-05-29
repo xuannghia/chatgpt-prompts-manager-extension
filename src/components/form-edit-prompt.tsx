@@ -1,8 +1,9 @@
+import { Button, Group, Input, SimpleGrid, TextInput, Textarea } from '@mantine/core'
+import { nanoid } from 'nanoid'
 import { type FC } from 'react'
 import { useForm } from 'react-hook-form'
+
 import type { Prompt } from '~types/prompt.type'
-import { nanoid } from 'nanoid'
-import { Button, Group, Input, SimpleGrid, Textarea, TextInput } from '@mantine/core'
 
 interface FormEditPromptProps {
   prompt?: Prompt
@@ -39,7 +40,14 @@ export const FormEditPrompt: FC<FormEditPromptProps> = ({ prompt: defaultPrompt,
   return (
     <div>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
-        <TextInput required label="Title" placeholder="Enter a title" type="text" mb="xs" {...register('title')} />
+        <TextInput
+          required
+          label="Title"
+          placeholder="Enter a title"
+          type="text"
+          mb="xs"
+          {...register('title')}
+        />
         <Textarea
           required
           label="Prompt"

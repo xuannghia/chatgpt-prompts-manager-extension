@@ -1,7 +1,9 @@
 import { Anchor, Box, Button, Group, Modal, Title } from '@mantine/core'
-import { useStorage } from '@plasmohq/storage/hook'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+
+import { useStorage } from '@plasmohq/storage/hook'
+
 import { FormEditPrompt } from '~components/form-edit-prompt'
 import { IconTrash } from '~icons/IconTrash'
 import type { Prompt } from '~types/prompt.type'

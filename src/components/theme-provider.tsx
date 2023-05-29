@@ -10,7 +10,11 @@ interface Props extends PropsWithChildren {
 
 export const ThemeProvider: FC<Props> = ({ emotionCache, children, colorScheme }) => {
   return (
-    <MantineProvider withGlobalStyles emotionCache={emotionCache} theme={{ colorScheme: colorScheme }}>
+    <MantineProvider
+      withGlobalStyles
+      emotionCache={emotionCache}
+      theme={{ colorScheme: colorScheme }}
+    >
       <Global
         styles={{
           body: {

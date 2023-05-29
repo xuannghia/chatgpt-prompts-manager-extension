@@ -8,6 +8,7 @@ export const PromptItem = styled.div`
   &.active,
   &:hover,
   &:focus {
-    background-color: ${({ theme }) => (theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2])};
+    background-color: ${({ theme }) =>
+      theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2]};
   }
 `

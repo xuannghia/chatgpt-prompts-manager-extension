@@ -1,6 +1,8 @@
 import { Anchor, Box, Title } from '@mantine/core'
-import { useStorage } from '@plasmohq/storage/hook'
 import { useNavigate } from 'react-router-dom'
+
+import { useStorage } from '@plasmohq/storage/hook'
+
 import { FormEditPrompt } from '~components/form-edit-prompt'
 import type { Prompt } from '~types/prompt.type'
 

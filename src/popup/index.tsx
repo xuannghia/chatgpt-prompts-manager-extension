@@ -1,9 +1,10 @@
 import { Box, Title } from '@mantine/core'
-import { ThemeProvider } from '~components/theme-provider'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import HomePage from '~pages/home'
+
+import { ThemeProvider } from '~components/theme-provider'
 import AddPage from '~pages/add'
 import EditPage from '~pages/edit'
+import HomePage from '~pages/home'
 
 function IndexPopup() {
   return (

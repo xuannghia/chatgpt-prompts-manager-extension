@@ -1,7 +1,9 @@
 import { ActionIcon, Box, Button, Group, Input, ScrollArea, Text } from '@mantine/core'
-import { useStorage } from '@plasmohq/storage/hook'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+
+import { useStorage } from '@plasmohq/storage/hook'
+
 import { PromptItem } from '~components/promt-item'
 import { IconPlus } from '~icons/IconPlus'
 import { IconSearch } from '~icons/IconSearch'
@@ -21,7 +23,10 @@ export default function HomePage() {
     () =>
       promptsStored.filter((prompt) => {
         const search = searchInput.toLowerCase()
-        return prompt.prompt.toLowerCase().includes(search) || prompt.title.toLowerCase().includes(search)
+        return (
+          prompt.prompt.toLowerCase().includes(search) ||
+          prompt.title.toLowerCase().includes(search)
+        )
       }),
     [promptsStored, searchInput],
   )
