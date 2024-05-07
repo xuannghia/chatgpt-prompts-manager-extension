@@ -19,7 +19,7 @@ const styleCache = createCache({
 })
 
 export const config: PlasmoCSConfig = {
-  matches: ['https://chat.openai.com/*'],
+  matches: ['https://chat.openai.com/*', 'https://chatgpt.com/*'],
 }
 
 export const getStyle = () => styleElement
