@@ -1,7 +1,7 @@
 import createCache from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'
 import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
-import type { PlasmoCSConfig } from 'plasmo'
+import type { PlasmoCSConfig, PlasmoMountShadowHost } from 'plasmo'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { useStorage } from '@plasmohq/storage/hook'
@@ -9,6 +9,7 @@ import { useStorage } from '@plasmohq/storage/hook'
 import { PromptItem } from '~components/promt-item'
 import { ThemeProvider } from '~components/theme-provider'
 import type { Prompt } from '~types/prompt.type'
+import { animationFrame } from '~utils/animation-frame'
 
 const styleElement = document.createElement('style')
 
@@ -24,13 +25,26 @@ export const config: PlasmoCSConfig = {
 
 export const getStyle = () => styleElement
 
+export const mountShadowHost: PlasmoMountShadowHost = ({ shadowHost }) => {
+  shadowHost.setAttribute('id', 'chatgpt-prompts-manager-shadow-host')
+  shadowHost.setAttribute('style', 'visibility: visible;')
+  // Because the hydration issue, we have to try to append the shadow host multiple times to make sure it's appended
+  animationFrame(() => {
+    const existing = document.getElementById('chatgpt-prompts-manager-shadow-host')
+    if (!existing) document.body.appendChild(shadowHost)
+  }, 500)
+}
+
 const PromptSuggestionsContent = () => {
   const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark')
   const [prompts] = useStorage<Prompt[]>('prompts', [])
   const [selectedId, setSelectedId] = useState('')
   const [results, setResults] = useState([])
-  const dom = document.getElementById('prompt-textarea').parentElement
-  const { x, y, width } = dom?.getBoundingClientRect() || { x: 0, y: 0, bottom: 0, width: 0 }
+
+  const [inputDom, setInputDom] = useState<HTMLInputElement>(null)
+  const { x, y, width } = inputDom
+    ? inputDom.parentElement.getBoundingClientRect()
+    : { x: 0, y: 0, width: 0 }
   const listRef = useRef<HTMLDivElement>(null)
 
   const handleSetInput = useCallback(
@@ -52,19 +66,21 @@ const PromptSuggestionsContent = () => {
     [prompts],
   )
 
-  const handleSelectItem = useCallback((item: Prompt) => {
-    const inputDom = document.getElementById('prompt-textarea') as HTMLInputElement
-    if (inputDom) {
-      inputDom.value = item.prompt
-      const event = new Event('input', { bubbles: true })
-      inputDom.dispatchEvent(event)
-      if (item.selection) {
-        inputDom.setSelectionRange(item.selection[0], item.selection[1])
+  const handleSelectItem = useCallback(
+    (item: Prompt) => {
+      if (inputDom) {
+        inputDom.value = item.prompt
+        const event = new Event('input', { bubbles: true })
+        inputDom.dispatchEvent(event)
+        if (item.selection) {
+          inputDom.setSelectionRange(item.selection[0], item.selection[1])
+        }
+        inputDom.focus()
       }
-      inputDom.focus()
-    }
-    setResults([])
-  }, [])
+      setResults([])
+    },
+    [inputDom],
+  )
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -107,7 +123,16 @@ const PromptSuggestionsContent = () => {
   )
 
   useEffect(() => {
-    const inputDom = document.getElementById('prompt-textarea')
+    const cancelAnimationFrame = animationFrame(() => {
+      const prompt = document.getElementById('prompt-textarea') as HTMLInputElement
+      if (prompt) {
+        setInputDom(prompt)
+        cancelAnimationFrame()
+      }
+    }, 300)
+  }, [])
+
+  useEffect(() => {
     if (inputDom) {
       inputDom.addEventListener('input', handleSetInput)
       inputDom.addEventListener('keydown', handleKeyDown)
@@ -118,7 +143,7 @@ const PromptSuggestionsContent = () => {
         inputDom.removeEventListener('keydown', handleKeyDown)
       }
     }
-  }, [handleKeyDown, handleSetInput])
+  }, [handleKeyDown, handleSetInput, inputDom])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
