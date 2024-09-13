@@ -41,7 +41,7 @@ const PromptSuggestionsContent = () => {
   const [selectedId, setSelectedId] = useState('')
   const [results, setResults] = useState([])
 
-  const [inputDom, setInputDom] = useState<HTMLInputElement>(null)
+  const [inputDom, setInputDom] = useState<HTMLDivElement>(null)
   const { x, y, width } = inputDom
     ? inputDom.parentElement.getBoundingClientRect()
     : { x: 0, y: 0, width: 0 }
@@ -49,8 +49,8 @@ const PromptSuggestionsContent = () => {
 
   const handleSetInput = useCallback(
     (event: InputEvent) => {
-      const currentTarget = event.currentTarget as HTMLInputElement
-      const input = currentTarget?.value || ''
+      const currentTarget = event.currentTarget as HTMLDivElement
+      const input = currentTarget?.innerText
       const slash = input[0]
       if (!input || slash !== '/') {
         setResults([])
@@ -69,13 +69,47 @@ const PromptSuggestionsContent = () => {
   const handleSelectItem = useCallback(
     (item: Prompt) => {
       if (inputDom) {
-        inputDom.value = item.prompt
+        let promptHTML = ''
+        const lines = item.prompt.split('\n')
+        lines.forEach((line) => {
+          const p = document.createElement('p')
+          p.innerText = line
+          promptHTML += p.outerHTML
+        })
+
+        inputDom.innerHTML = promptHTML
         const event = new Event('input', { bubbles: true })
         inputDom.dispatchEvent(event)
         if (item.selection) {
-          inputDom.setSelectionRange(item.selection[0], item.selection[1])
+          const range = document.createRange()
+          const paragraphs = inputDom.querySelectorAll('p')
+          const start = item.selection[0]
+          const end = item.selection[1]
+          let charCount = 0
+          let startNode = null
+          let endNode = null
+          let startOffset = 0
+          let endOffset = 0
+          lines.forEach((line, index) => {
+            const textLength = line.length + index
+            if (!startNode && charCount + textLength >= start) {
+                startNode = paragraphs[index].firstChild
+                startOffset = start - charCount  - index
+            }
+            if (!endNode && charCount + textLength >= end) {
+                endNode = paragraphs[index].firstChild
+                endOffset = end - charCount - index + 1
+            }
+            charCount += textLength
+          });
+          if (startNode && endNode) {
+            range.setStart(startNode, startOffset)
+            range.setEnd(endNode, endOffset)
+            const selection = window.getSelection()
+            selection.removeAllRanges()
+            selection.addRange(range)
+          }
         }
-        inputDom.focus()
       }
       setResults([])
     },

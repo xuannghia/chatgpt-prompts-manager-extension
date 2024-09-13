@@ -22,8 +22,8 @@ export const FormEditPrompt: FC<FormEditPromptProps> = ({ prompt: defaultPrompt,
     defaultValues: {
       title: defaultPrompt?.title || '',
       prompt: defaultPrompt?.prompt || '',
-      start: defaultPrompt?.selection?.[0] || undefined,
-      end: defaultPrompt?.selection?.[1] || undefined,
+      start: defaultPrompt?.selection?.[0] ?? undefined,
+      end: defaultPrompt?.selection?.[1] ?? undefined,
     },
   })
 
@@ -32,7 +32,7 @@ export const FormEditPrompt: FC<FormEditPromptProps> = ({ prompt: defaultPrompt,
       id: defaultPrompt?.id || nanoid(),
       title: data.title,
       prompt: data.prompt,
-      selection: data.start && data.end ? [data.start, data.end] : undefined,
+      selection: Number.isInteger(data.start) && data.end > data.start ? [data.start, data.end] : undefined,
     }
     onSubmit(prompt)
   }
@@ -79,7 +79,7 @@ export const FormEditPrompt: FC<FormEditPromptProps> = ({ prompt: defaultPrompt,
               },
               validate: (value) => {
                 const end = getValues('end')
-                if (end && !value) return 'Start is required when end is filled'
+                if (end && value < 0) return 'Start is required when end is filled'
                 return true
               },
             })}
