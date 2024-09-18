@@ -91,16 +91,16 @@ const PromptSuggestionsContent = () => {
           let startOffset = 0
           let endOffset = 0
           lines.forEach((line, index) => {
-            const textLength = line.length + index
+            const textLength = line.length
             if (!startNode && charCount + textLength >= start) {
                 startNode = paragraphs[index].firstChild
-                startOffset = start - charCount  - index
+                startOffset = start - charCount
             }
             if (!endNode && charCount + textLength >= end) {
                 endNode = paragraphs[index].firstChild
-                endOffset = end - charCount - index + 1
+                endOffset = end - charCount
             }
-            charCount += textLength
+            charCount += textLength + 1 // +1 for the \n character has been removed by split
           });
           if (startNode && endNode) {
             range.setStart(startNode, startOffset)
