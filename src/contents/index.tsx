@@ -1,7 +1,7 @@
 import createCache from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'
 import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
-import type { PlasmoCSConfig, PlasmoMountShadowHost } from 'plasmo'
+import type { PlasmoCSConfig, PlasmoGetInlineAnchor } from 'plasmo'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { useStorage } from '@plasmohq/storage/hook'
@@ -25,15 +25,10 @@ export const config: PlasmoCSConfig = {
 
 export const getStyle = () => styleElement
 
-export const mountShadowHost: PlasmoMountShadowHost = ({ shadowHost }) => {
-  shadowHost.setAttribute('id', 'chatgpt-prompts-manager-shadow-host')
-  shadowHost.setAttribute('style', 'visibility: visible;')
-  // Because the hydration issue, we have to try to append the shadow host multiple times to make sure it's appended
-  animationFrame(() => {
-    const existing = document.getElementById('chatgpt-prompts-manager-shadow-host')
-    if (!existing) document.body.appendChild(shadowHost)
-  }, 500)
-}
+export const getInlineAnchor: PlasmoGetInlineAnchor = async () => ({
+  element: document.querySelector("#prompt-textarea"),
+  insertPosition: "afterend"
+})
 
 const PromptSuggestionsContent = () => {
   const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark')
@@ -117,7 +112,7 @@ const PromptSuggestionsContent = () => {
   )
 
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    (event: KeyboardEvent) => {      
       if (!results.length) return
       const index = results.findIndex((item) => item.id === selectedId)
       const item = results.find((item) => item.id === selectedId)

@@ -1,7 +1,7 @@
 {
   "name": "chatgpt-prompts-manager-extension",
   "displayName": "ChatGPT Prompts Manager Extension",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "ChatGPT Prompts Manager Extension",
   "author": "xuannghia",
   "scripts": {
