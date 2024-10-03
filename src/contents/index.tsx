@@ -203,6 +203,11 @@ const PromptSuggestionsContent = () => {
     }
   }, [selectedId])
 
+  useLayoutEffect(() => {
+    // Fix the issue where the style is not re-inserted when changing the ChatGPT conversation
+    styleCache.inserted = {}
+  }, [])
+
   if (results.length === 0) return null
 
   return (
