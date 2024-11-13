@@ -1,8 +1,8 @@
 import createCache from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'
-import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
+import { Flex, Kbd, Paper, ScrollArea, Text } from '@mantine/core'
 import type { PlasmoCSConfig, PlasmoGetInlineAnchor } from 'plasmo'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useStorage } from '@plasmohq/storage/hook'
 import { PromptItem } from '~components/prompt-item'
 import { ThemeProvider } from '~components/theme-provider'
@@ -32,7 +32,18 @@ const PromptSuggestionsContent = () => {
   const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark')
   const [prompts] = useStorage<Prompt[]>('prompts', [])
   const [selectedId, setSelectedId] = useState('')
-  const [results, setResults] = useState([])
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const height = useMemo(() => {
+    return open && window.location.pathname === '/' ? 320 : 400
+  }, [open])
+
+  const results = useMemo(() => {
+    return prompts.filter((item) => {
+      return item.prompt.toLowerCase().includes(search) || item.title.toLowerCase().includes(search)
+    })
+  }, [prompts, search])
 
   const [inputDom, setInputDom] = useState<HTMLDivElement>(null)
   const { x, y, width } = inputDom
@@ -40,24 +51,12 @@ const PromptSuggestionsContent = () => {
     : { x: 0, y: 0, width: 0 }
   const listRef = useRef<HTMLDivElement>(null)
 
-  const handleSetInput = useCallback(
-    (event: InputEvent) => {
-      const currentTarget = event.currentTarget as HTMLDivElement
-      const input = currentTarget?.innerText
-      const slash = input[0]
-      if (!input || slash !== '/') {
-        setResults([])
-        return
-      }
-      const text = input.slice(1).toLowerCase()
-      const data = prompts.filter((item) => {
-        return item.prompt.toLowerCase().includes(text) || item.title.toLowerCase().includes(text)
-      })
-      setResults(data)
-      setSelectedId(data[0]?.id)
-    },
-    [prompts],
-  )
+  const handleSetInput = useCallback((event: InputEvent) => {
+    const currentTarget = event.currentTarget as HTMLDivElement
+    const input = currentTarget?.innerText
+    const text = input.toLowerCase()
+    setSearch(text)
+  }, [])
 
   const handleSelectItem = useCallback(
     (item: Prompt) => {
@@ -104,19 +103,36 @@ const PromptSuggestionsContent = () => {
           }
         }
       }
-      setResults([])
+      setOpen(false)
+      setSearch('')
     },
     [inputDom],
   )
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      const currentTarget = event.currentTarget as HTMLDivElement
+      const input = currentTarget?.innerText
+
+      // Press `Ctrl + /` or`/` with empty input to open the prompt panel
+      if (event.key === '/' && ((!input && !open) || event.ctrlKey)) {
+        setOpen(true)
+        setSearch('')
+        event.preventDefault()
+        return
+      }
+      if (event.key === '/') {
+        setOpen(false)
+        setSearch('')
+        return
+      }
       if (!results.length) return
       const index = results.findIndex((item) => item.id === selectedId)
       const item = results.find((item) => item.id === selectedId)
       switch (event.key) {
         case 'Escape':
-          setResults([])
+          setSearch('')
+          setOpen(false)
           event.preventDefault()
           break
         case 'ArrowDown':
@@ -146,7 +162,7 @@ const PromptSuggestionsContent = () => {
           break
       }
     },
-    [handleSelectItem, results, selectedId],
+    [handleSelectItem, results, selectedId, open],
   )
 
   useEffect(() => {
@@ -176,7 +192,8 @@ const PromptSuggestionsContent = () => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
       if (target.id !== 'prompt-textarea') {
-        setResults([])
+        setOpen(false)
+        setSearch('')
       }
     }
     document.addEventListener('click', handleClickOutside)
@@ -193,6 +210,12 @@ const PromptSuggestionsContent = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (results.length > 0) {
+      setSelectedId(results[0]?.id)
+    }
+  }, [results])
+
   useLayoutEffect(() => {
     if (listRef.current) {
       listRef.current.querySelector(`#prompt-item-${selectedId}.active`)?.scrollIntoView({
@@ -206,18 +229,26 @@ const PromptSuggestionsContent = () => {
     styleCache.inserted = {}
   }, [])
 
-  if (results.length === 0) return null
+  if (results.length === 0 || !open) return null
 
   return (
     <CacheProvider value={styleCache}>
       <ThemeProvider emotionCache={styleCache} colorScheme={colorScheme}>
         <div style={{ position: 'fixed', left: x, bottom: window.innerHeight - y + 12, width }}>
           <Paper radius="md" p={6} role="listbox" shadow="lg" withBorder>
-            <Text size="xs" style={{ marginBottom: 6 }}>
-              Press <Kbd>Tab</Kbd> to select
+            <Flex mb="xs">
+              <Text size="xs">
+                Press <Kbd>↑</Kbd> <Kbd>↓</Kbd> to navigate and <Kbd>Tab</Kbd> to select
+              </Text>
+              <Text size="xs" ml="auto">
+                <Kbd>Esc</Kbd> to close
+              </Text>
+            </Flex>
+            <Text size="xs" mb="xs">
+              {search ? `Search results for "${search}"` : 'Type anything to search'}
             </Text>
             <ScrollArea
-              h={400}
+              h={height}
               type="auto"
               ref={listRef}
               sx={{ '& > div > div': { display: 'block!important' } }}
