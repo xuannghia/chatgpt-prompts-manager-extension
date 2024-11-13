@@ -29,13 +29,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Detect branch from tag
-        id: detect_branch
-        run: |
-          # Find the branch associated with the current tag
-          BRANCH=$(git branch -r --contains $GITHUB_SHA | grep -Eo 'origin/[^ ]+' | sed 's|origin/||' | head -n 1)
-          echo "branch=$BRANCH" >> $GITHUB_ENV
-
       - name: Bump version in package.json
         run: |
           # Extract the version from the tag, e.g., v1.2.3 -> 1.2.3
@@ -47,7 +40,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add package.json
           git commit -m "chore(release): bump version to $VERSION"
-          git push origin HEAD:${{ env.branch }}
+
+          # Find the branch associated with the current tag
+          BRANCH=$(git branch -r --contains $GITHUB_SHA | grep -Eo 'origin/[^ ]+' | sed 's|origin/||' | head -n 1)
+          echo "Branch: $BRANCH"
+          
+          git push origin HEAD:$BRANCH
 
       - name: Build the extension
         run: pnpm build
