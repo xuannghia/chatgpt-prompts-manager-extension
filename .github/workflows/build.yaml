@@ -29,24 +29,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Bump version in package.json
-        run: |
-          # Extract the version from the tag, e.g., v1.2.3 -> 1.2.3
-          VERSION=${GITHUB_REF#refs/tags/v}
-          # Update package.json version
-          pnpm version "$VERSION" --no-git-tag-version
-          # Commit and push the updated package.json
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json
-          git commit -m "chore(release): bump version to $VERSION"
-
-          # Find the branch associated with the current tag
-          BRANCH=$(git branch -r --contains $GITHUB_SHA | grep -Eo 'origin/[^ ]+' | sed 's|origin/||' | head -n 1)
-          echo "Branch: $BRANCH"
-          
-          git push origin HEAD:$BRANCH
-
       - name: Build the extension
         run: pnpm build
       
