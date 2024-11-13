@@ -8,6 +8,7 @@
     "dev": "plasmo dev",
     "build": "plasmo build",
     "package": "plasmo package",
+    "release": "pnpm version $1 --message \"chore(release): bump version to %s\"",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "dependencies": {
