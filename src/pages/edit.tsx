@@ -1,9 +1,7 @@
 import { Anchor, Box, Button, Group, Modal, Title } from '@mantine/core'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
 import { useStorage } from '@plasmohq/storage/hook'
-
 import { FormEditPrompt } from '~components/form-edit-prompt'
 import { IconTrash } from '~icons/IconTrash'
 import type { Prompt } from '~types/prompt.type'
@@ -49,7 +47,7 @@ export default function EditPage() {
       </Modal>
 
       <Group position="apart">
-        <Anchor size="sm" onClick={() => navigate(-1)}>
+        <Anchor component="button" size="sm" onClick={() => navigate(-1)}>
           Back
         </Anchor>
         <Button

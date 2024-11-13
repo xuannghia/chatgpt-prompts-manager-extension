@@ -1,6 +1,5 @@
 import { Box, Title } from '@mantine/core'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-
 import { ThemeProvider } from '~components/theme-provider'
 import AddPage from '~pages/add'
 import EditPage from '~pages/edit'
