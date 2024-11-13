@@ -35,6 +35,10 @@ const PromptSuggestionsContent = () => {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
 
+  const height = useMemo(() => {
+    return open && window.location.pathname === '/' ? 320 : 400
+  }, [open])
+
   const results = useMemo(() => {
     return prompts.filter((item) => {
       return item.prompt.toLowerCase().includes(search) || item.title.toLowerCase().includes(search)
@@ -244,7 +248,7 @@ const PromptSuggestionsContent = () => {
               {search ? `Search results for "${search}"` : 'Type anything to search'}
             </Text>
             <ScrollArea
-              h={400}
+              h={height}
               type="auto"
               ref={listRef}
               sx={{ '& > div > div': { display: 'block!important' } }}
