@@ -3,10 +3,8 @@ import { CacheProvider } from '@emotion/react'
 import { Kbd, Paper, ScrollArea, Text } from '@mantine/core'
 import type { PlasmoCSConfig, PlasmoGetInlineAnchor } from 'plasmo'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-
 import { useStorage } from '@plasmohq/storage/hook'
-
-import { PromptItem } from '~components/promt-item'
+import { PromptItem } from '~components/prompt-item'
 import { ThemeProvider } from '~components/theme-provider'
 import type { Prompt } from '~types/prompt.type'
 import { animationFrame } from '~utils/animation-frame'
@@ -26,8 +24,8 @@ export const config: PlasmoCSConfig = {
 export const getStyle = () => styleElement
 
 export const getInlineAnchor: PlasmoGetInlineAnchor = async () => ({
-  element: document.querySelector("#prompt-textarea"),
-  insertPosition: "afterend"
+  element: document.querySelector('#prompt-textarea'),
+  insertPosition: 'afterend',
 })
 
 const PromptSuggestionsContent = () => {
@@ -88,15 +86,15 @@ const PromptSuggestionsContent = () => {
           lines.forEach((line, index) => {
             const textLength = line.length
             if (!startNode && charCount + textLength >= start) {
-                startNode = paragraphs[index].firstChild
-                startOffset = start - charCount
+              startNode = paragraphs[index].firstChild
+              startOffset = start - charCount
             }
             if (!endNode && charCount + textLength >= end) {
-                endNode = paragraphs[index].firstChild
-                endOffset = end - charCount
+              endNode = paragraphs[index].firstChild
+              endOffset = end - charCount
             }
             charCount += textLength + 1 // +1 for the \n character has been removed by split
-          });
+          })
           if (startNode && endNode) {
             range.setStart(startNode, startOffset)
             range.setEnd(endNode, endOffset)
@@ -112,7 +110,7 @@ const PromptSuggestionsContent = () => {
   )
 
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {      
+    (event: KeyboardEvent) => {
       if (!results.length) return
       const index = results.findIndex((item) => item.id === selectedId)
       const item = results.find((item) => item.id === selectedId)

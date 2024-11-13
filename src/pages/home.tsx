@@ -1,10 +1,21 @@
-import { ActionIcon, Box, Button, Group, Input, ScrollArea, Text } from '@mantine/core'
+import {
+  ActionIcon,
+  Box,
+  Button,
+  CopyButton,
+  Flex,
+  Group,
+  Input,
+  ScrollArea,
+  Text,
+  Tooltip,
+} from '@mantine/core'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-
 import { useStorage } from '@plasmohq/storage/hook'
-
-import { PromptItem } from '~components/promt-item'
+import { PromptItem } from '~components/prompt-item'
+import { IconCheck } from '~icons/IconCheck'
+import { IconCopy } from '~icons/IconCopy'
 import { IconPlus } from '~icons/IconPlus'
 import { IconSearch } from '~icons/IconSearch'
 import { IconX } from '~icons/IconX'
@@ -98,10 +109,41 @@ export default function HomePage() {
                 navigate(`/edit/${prompt.id}`)
               }}
             >
-              <Text>{prompt.title}</Text>
-              <Text truncate size="sm" color="dimmed">
-                {prompt.prompt}
-              </Text>
+              <Flex>
+                <Box sx={{ flex: 'auto', width: 0 }}>
+                  <Text>{prompt.title}</Text>
+                  <Text truncate size="sm" color="dimmed">
+                    {prompt.prompt}
+                  </Text>
+                </Box>
+                <Box
+                  ml="auto"
+                  pl="sm"
+                  sx={{
+                    flexShrink: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <CopyButton value={prompt.prompt}>
+                    {({ copied, copy }) => (
+                      <Tooltip label={copied ? 'Copied' : 'Copy'}>
+                        <ActionIcon
+                          variant="subtle"
+                          color={copied ? 'teal' : 'blue'}
+                          onClick={(e) => {
+                            copy()
+                            e.stopPropagation()
+                          }}
+                        >
+                          {copied ? <IconCheck size={20} /> : <IconCopy size={20} />}
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                </Box>
+              </Flex>
             </PromptItem>
           ))}
         </Box>
