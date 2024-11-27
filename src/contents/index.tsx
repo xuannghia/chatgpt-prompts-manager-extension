@@ -126,7 +126,7 @@ const PromptSuggestionsContent = () => {
         setSearch('')
         return
       }
-      if (!results.length) return
+      if (!results.length || !open) return
       const index = results.findIndex((item) => item.id === selectedId)
       const item = results.find((item) => item.id === selectedId)
       switch (event.key) {
